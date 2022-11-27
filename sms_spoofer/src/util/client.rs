@@ -10,6 +10,7 @@ pub async fn send(args: Vec<String>) {
     let token = dotenv::var("TWILIO_TOKEN").expect("$TWILIO_TOKEN is not set");
     let client = Client::new(sid.as_str(), token.as_str());
     let msg = OutboundMessage::new(from, to, body);
+    
     println!("{} {}", to, from);
     match client.send_message(msg).await {
         Ok(m) => println!("{:?}", m),
