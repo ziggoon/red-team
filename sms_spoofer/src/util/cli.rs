@@ -25,11 +25,19 @@ fn desc() {
 }
 
 fn main_help() {
-    let help = r#"
-      send          sends new message
-                    usage: send <to> <from> <body>"
-      help          this page lol
-      quit          exits the program"#;
+    let help = r#"                      
+                                COMMANDS
+                send                sends new message
+                                    usage: send <to> <from> <body>
+
+                numbers             prints avaialable numbers for use
+                                    usage: numbers
+
+                messages            prints sent messages
+                                    usage: messages
+
+                help                this page lol
+                quit                exits the program"#;
     println!("{}", help);
 }
 
@@ -40,30 +48,31 @@ fn get_string_vec(s: String) -> Vec<String> {
     s.split_whitespace().map(str::to_string).collect()
 }
 
-pub async fn main_loop() {
+pub async fn main_loop() -> Result<()> {
     banner();
     desc();
     
     let conn = Connection::open("db.db").expect("connection failed");
-    util::db::check_db(&conn).await;
+    util::db::check_db(&conn).await.unwrap();
 
     let mut user_input: Vec<String>;
     let mut rl = Editor::<()>::new();
     if rl.load_history(".history").is_err() {
            println!("no previous history...");
     }
-    println!("\t\t type 'new <number>' to add a number to the db");
-    println!("\t\t     type 'exit' to leave configuration mode\n");
+    println!("\t\t  type 'new <number>' to add a number for use");
+    println!("\t\t       use the E.164 format +1XXXXXXXXXX");
+    println!("\t\t    type 'exit' to leave configuration mode\n");
     loop {
         let readline = rl.readline("CONFIG# ");
         match readline {
             Ok(line) => {
                 user_input = get_string_vec(line);
                 match user_input[0].as_str() {
-                    "new" => util::db::insert_number(&conn, user_input).await,
+                    "new" => util::db::insert_number(&conn, user_input).await.unwrap(),
                     "exit" => break,
                     _ => continue,
-                }
+                };
             },
             Err(ReadlineError::Interrupted) => {
                 println!("ctrl+c pressed. quitting now..");
@@ -89,7 +98,8 @@ pub async fn main_loop() {
                 user_input = get_string_vec(line);
                 match user_input[0].as_str() {
                     "send" => util::client::send(&conn, user_input).await,
-                    //"get" => util::db::get_numbers(&conn).await,
+                    "numbers" => util::db::get_numbers(&conn).await.unwrap(),
+                    "messages" => util::db::get_messages(&conn).await.unwrap(),
                     "help" => main_help(),
                     "exit" => std::process::exit(0),
                     _ => continue,
@@ -110,4 +120,5 @@ pub async fn main_loop() {
         } 
     }
     rl.save_history(".history").unwrap();
+    Ok(())
 }
