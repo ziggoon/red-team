@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result};
 
 
-/*#[derive(Debug)]
+#[derive(Debug)]
 struct Message {
     id: i32,
     number_to: String,
@@ -13,10 +13,9 @@ struct Message {
 struct PhoneNumber {
     id: i32,
     number: String,
-}*/
+}
 
 pub async fn check_db(conn: &Connection) -> Result<()> {
-    //let conn = Connection::open("db.db")?;
     conn.execute(
         "create table if not exists numbers (
             id integer primary key autoincrement,
@@ -36,22 +35,50 @@ pub async fn check_db(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub async fn insert_message(conn: &Connection, args: Vec<String>) {
-    //let conn = Connection::open("db.db").expect("connection failed");
+pub async fn insert_message(conn: &Connection, args: Vec<String>) -> Result<()> {
     conn.execute(
         "insert into messages (number_to, number_from, msg_body) values (?1, ?2, ?3)",
         &[args[1].as_str(), args[2].as_str(), args[3].as_str()],
     ).expect("insert failed");
+    Ok(())
 }
 
-pub async fn insert_number(conn: &Connection, args: Vec<String>) {
-    //let conn = Connection::open("db.db").expect("connection failed");
+pub async fn insert_number(conn: &Connection, args: Vec<String>) -> Result<()> {
     conn.execute(
         "insert into numbers (number) values (?1)",
         &[args[1].as_str()],
     ).expect("insert failed");
+    Ok(())
 }
  
-/*pub async fn get_numbers(conn: &Connection) {
-    let row: Result<String, rusqlite::Error> = conn.query_row("select number from numbers;", [], |row|)
-}*/
+pub async fn get_numbers(conn: &Connection) -> Result<()> {
+   let mut stmt = conn.prepare("select id, number from numbers")?;
+   let num_iter = stmt.query_map([], |row| {
+    Ok(PhoneNumber {
+        id: row.get(0)?,
+        number: row.get(1)?,
+    })
+   })?;
+   
+   for num in num_iter {
+    println!("found number {:?}", num.unwrap())
+   }
+   Ok(())
+}
+
+pub async fn get_messages(conn: &Connection) -> Result<()> {
+    let mut stmt = conn.prepare("select id, number_to, number_from, msg_body from messages")?;
+    let msg_iter = stmt.query_map([], |row| {
+     Ok(Message {
+         id: row.get(0)?,
+         number_to: row.get(1)?,
+         number_from: row.get(2)?,
+         body: row.get(3)?,
+     })
+    })?;
+    
+    for msg in msg_iter {
+     println!("found message {:?}", msg.unwrap())
+    }
+    Ok(())
+ }

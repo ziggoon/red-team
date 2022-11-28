@@ -1,6 +1,6 @@
 use dotenv;
 use twilio::{Client, OutboundMessage};
-use rusqlite::{Connection, Result};
+use rusqlite::Connection;
 
 use crate::util;
 
@@ -18,7 +18,7 @@ pub async fn send(conn: &Connection, args: Vec<String>) {
     match client.send_message(msg).await {
         Ok(m) => {
             println!("{:?}", m);
-            util::db::insert_message(&conn, args).await;
+            util::db::insert_message(&conn, args).await.unwrap();
         },
         Err(e) => eprintln!("{:?}", e)
     }
