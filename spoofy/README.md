@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/ziggoon/red-team/tree/main/spoofy/logo.png" alt="logo">    
+  <img src="https://github.com/ziggoon/red-team/tree/main/spoofy/logo.png" alt="logo" width=144 height=72>    
   <h3 align="center">spoofy</h3>
   <p align="center">
     SMS "spoofing" in Rust
