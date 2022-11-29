@@ -27,7 +27,7 @@ requirements:
 
 ## status
 
-Here goes all the budgets
+release [v1.0.0](https://github.com/ziggoon/red-team/releases/tag/spoofy-v1.0.0)
 
 ## what's included
 
