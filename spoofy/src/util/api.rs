@@ -30,24 +30,33 @@ pub async fn send(conn: &Connection, args: Vec<String>) {
     }
 }
 
+// handles api request from twilio... TERRIBLE implementation but it works ig..
 async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     let sid = dotenv::var("TWILIO_SID").expect("$TWILIO_SID is not set");
     let token = dotenv::var("TWILIO_TOKEN").expect("$TWILIO_TOKEN is not set");
     let client = twilio::Client::new(sid.as_str(), token.as_str());
 
     let cloned_uri = req.uri().clone();
-    println!("Got a request for: {}", cloned_uri);
+    println!("\nreceived a POST @: {}", cloned_uri);
     
     let bytes = body::to_bytes(req.into_body()).await?;
     let bod = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
     
     let split: Vec<&str> = bod.split(|c| c == '&' || c == '=').collect();
     let args: Vec<String> = vec!["add".to_string(),split[25].to_string(), split[37].to_string(), split[21].to_string()];
+    println!("\n!!new message received!!");
+    println!("to: {}", args[1]);
+    println!("from: {}", args[2]);
+    println!("body: {}", args[3]);
+    
+    // post message to db... need help fixing this 
     let conn = Connection::open("db.db").expect("connection failed");
     conn.execute(
         "insert into messages (number_to, number_from, msg_body) values (?1, ?2, ?3)",
         &[args[1].as_str(), args[2].as_str(), args[3].as_str()],
     ).expect("insert failed");
+
+
     Ok(Response::new(Body::from(bod)))
 }
 

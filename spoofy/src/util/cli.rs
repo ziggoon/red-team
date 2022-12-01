@@ -66,34 +66,6 @@ pub async fn main_loop() -> Result<()> {
     if rl.load_history(".history").is_err() {
            println!("no previous history...");
     }
-    println!("\t\t  type 'new <number>' to add a number for use");
-    println!("\t\t       use the E.164 format +1XXXXXXXXXX");
-    println!("\t\t    type 'exit' to leave configuration mode\n");
-    loop {
-        let readline = rl.readline("CONFIG# ");
-        match readline {
-            Ok(line) => {
-                user_input = get_string_vec(line);
-                match user_input[0].as_str() {
-                    "new" => util::db::insert_number(&conn, user_input).await.unwrap(),
-                    "exit" => break,
-                    _ => continue,
-                };
-            },
-            Err(ReadlineError::Interrupted) => {
-                println!("ctrl+c pressed. quitting now..");
-                std::process::exit(0);
-            },
-            Err(ReadlineError::Eof) => {
-                println!("ctrl+d pressed. quitting now..");
-                std::process::exit(0);
-            },
-            Err(err) => {
-                println!("error: {:?}", err);
-                std::process::exit(0);
-            }
-        }
-    }
     println!("\t\t\t *usage* : send <to> <from> <body>");
     println!("\t\t     for additional cmd information type 'help'");
     loop {
