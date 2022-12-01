@@ -8,7 +8,7 @@ use rusqlite::Connection;
 
 use dotenv;
 use crate::util;
-use std::thread;
+
 
 pub async fn send(conn: &Connection, args: Vec<String>) {
     //println!("welcome to client::send()");
@@ -43,17 +43,19 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Err
     let bod = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
     
     let split: Vec<&str> = bod.split(|c| c == '&' || c == '=').collect();
-    let args: Vec<String> = vec!["add".to_string(),split[25].to_string(), split[37].to_string(), split[21].to_string()];
+    let num_to = split[25].to_string().replace("%2B", "+");
+    let num_from = split[37].to_string().replace("%2B", "+");
+    let msg_body = split[21].to_string();
     println!("\n!!new message received!!");
-    println!("to: {}", args[1]);
-    println!("from: {}", args[2]);
-    println!("body: {}", args[3]);
-    
+    println!("to: {}", num_to);
+    println!("from: {}", num_from);
+    println!("body: {}", msg_body);
+
     // post message to db... need help fixing this 
     let conn = Connection::open("db.db").expect("connection failed");
     conn.execute(
         "insert into messages (number_to, number_from, msg_body) values (?1, ?2, ?3)",
-        &[args[1].as_str(), args[2].as_str(), args[3].as_str()],
+        [num_to, num_from, msg_body],
     ).expect("insert failed");
 
 
