@@ -1,9 +1,11 @@
 use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Request, Response};
+use futures::TryStreamExt; // 0.3.7
+use hyper::{server::Server, service, Body, Method, Request, Response}; // 0.13.9
+use hyper::body;
 use std::convert::Infallible;
 use std::net::SocketAddr;
 use twilio::twiml::Twiml;
-use twilio::{Client, OutboundMessage};
+use twilio::{Client, Message, OutboundMessage};
 use rusqlite::Connection;
 
 use dotenv;
@@ -29,37 +31,36 @@ pub async fn send(conn: &Connection, args: Vec<String>) {
     }
 }
 
-async fn handle(req: Request<Body>) -> Result<Response<Body>, Infallible> {
+async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
     let sid = dotenv::var("TWILIO_SID").expect("$TWILIO_SID is not set");
     let token = dotenv::var("TWILIO_TOKEN").expect("$TWILIO_TOKEN is not set");
     let client = twilio::Client::new(sid.as_str(), token.as_str());
 
     let cloned_uri = req.uri().clone();
     println!("Got a request for: {}", cloned_uri);
-
-    let response = match cloned_uri.path() {
-        "/sms" => {
-            client
-                .respond_to_webhook(req, |msg: twilio::Message| {
-                    let mut t = Twiml::new();
-                    t.add(&twilio::twiml::Message {
-                        txt: format!("You told me: '{}'", msg.body.unwrap()),
-                    });
-                    t
-                })
-                .await
-        }
-        _ => panic!("Hit an unknown path."),
-    };
-
-    Ok(response)
+    
+    let bytes = body::to_bytes(req.into_body()).await?;
+    let bod = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
+    
+    let split = bod.split("&");
+    for i in split {
+        println!("{}", i);
+    }
+    
+    Ok(Response::new(Body::from(bod)))
 }
 
 #[tokio::main]
 pub async fn main() {
-    let addr: SocketAddr = "0.0.0.0:3000".parse().unwrap();
-    let make_service = make_service_fn(|_| async { Ok::<_, Infallible>(service_fn(handle)) });
-    let server = hyper::Server::bind(&addr).serve(make_service);
-    println!("Listening on http://{}", addr);
-    server.await.unwrap();
+    let addr = "0.0.0.0:3000".parse().expect("Unable to parse address");
+
+    let server = Server::bind(&addr).serve(service::make_service_fn(|_conn| async {
+        Ok::<_, Infallible>(service::service_fn(handle_request))
+    }));
+
+    println!("Listening on http://{}.", server.local_addr());
+
+    if let Err(e) = server.await {
+        eprintln!("Error: {}", e);
+    }
 }
