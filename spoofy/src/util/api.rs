@@ -58,7 +58,7 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Err
 
 #[tokio::main]
 pub async fn main() {
-    let addr = "127.0.0.1:3000".parse().expect("Unable to parse address");
+    let addr = "0.0.0.0:3000".parse().expect("Unable to parse address");
 
     let server = Server::bind(&addr).serve(service::make_service_fn(|_conn| async {
         Ok::<_, hyper::Error>(service::service_fn(handle_request))
