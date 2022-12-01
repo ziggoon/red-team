@@ -19,3 +19,5 @@ Cargo.lock
 
 # application db
 db.db
+
+.DS_Store
