@@ -3,13 +3,12 @@ use futures::TryStreamExt; // 0.3.7
 use hyper::{server::Server, service, Body, Method, Request, Response}; // 0.13.9
 use hyper::body;
 use std::convert::Infallible;
-use std::net::SocketAddr;
-use twilio::twiml::Twiml;
 use twilio::{Client, Message, OutboundMessage};
 use rusqlite::Connection;
 
 use dotenv;
 use crate::util;
+use std::thread;
 
 pub async fn send(conn: &Connection, args: Vec<String>) {
     //println!("welcome to client::send()");
@@ -42,11 +41,13 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Err
     let bytes = body::to_bytes(req.into_body()).await?;
     let bod = String::from_utf8(bytes.to_vec()).expect("response was not valid utf-8");
     
-    let split = bod.split("&");
-    for i in split {
-        println!("{}", i);
-    }
-    
+    let split: Vec<&str> = bod.split(|c| c == '&' || c == '=').collect();
+    let args: Vec<String> = vec!["add".to_string(),split[25].to_string(), split[37].to_string(), split[21].to_string()];
+    let conn = Connection::open("db.db").expect("connection failed");
+    conn.execute(
+        "insert into messages (number_to, number_from, msg_body) values (?1, ?2, ?3)",
+        &[args[1].as_str(), args[2].as_str(), args[3].as_str()],
+    ).expect("insert failed");
     Ok(Response::new(Body::from(bod)))
 }
 
@@ -55,7 +56,7 @@ pub async fn main() {
     let addr = "0.0.0.0:3000".parse().expect("Unable to parse address");
 
     let server = Server::bind(&addr).serve(service::make_service_fn(|_conn| async {
-        Ok::<_, Infallible>(service::service_fn(handle_request))
+        Ok::<_, hyper::Error>(service::service_fn(handle_request))
     }));
 
     println!("Listening on http://{}.", server.local_addr());
