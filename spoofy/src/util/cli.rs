@@ -1,6 +1,8 @@
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 use rusqlite::{Connection, Result};
+use std::thread;
+
 use crate::util;
 
 fn banner() {
@@ -51,7 +53,11 @@ fn get_string_vec(s: String) -> Vec<String> {
 pub async fn main_loop() -> Result<()> {
     banner();
     desc();
-    
+    thread::spawn(|| {
+        println!("starting api server!");
+        util::api::main();
+    });
+
     let conn = Connection::open("db.db").expect("connection failed");
     util::db::check_db(&conn).await.unwrap();
 
@@ -97,7 +103,7 @@ pub async fn main_loop() -> Result<()> {
                 rl.add_history_entry(line.as_str());
                 user_input = get_string_vec(line);
                 match user_input[0].as_str() {
-                    "send" => util::client::send(&conn, user_input).await,
+                    "send" => util::api::send(&conn, user_input).await,
                     "numbers" => util::db::get_numbers(&conn).await.unwrap(),
                     "messages" => util::db::get_messages(&conn).await.unwrap(),
                     "help" => main_help(),

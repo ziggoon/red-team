@@ -1,3 +1,3 @@
 pub mod cli;
-mod client;
 mod db;
+mod api;
