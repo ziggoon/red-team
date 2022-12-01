@@ -54,7 +54,7 @@ pub async fn main_loop() -> Result<()> {
     banner();
     desc();
     thread::spawn(|| {
-        println!("starting api server!");
+        println!("\t\t\t       starting api server!");
         util::api::main();
     });
 

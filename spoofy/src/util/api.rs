@@ -14,11 +14,12 @@ pub async fn send(conn: &Connection, args: Vec<String>) {
     //println!("welcome to client::send()");
     let to = &args[1];
     let from = &args[2];
-    let body = &args[3];
+    let mut body = args[3..].join(" ");
+
     let sid = dotenv::var("TWILIO_SID").expect("$TWILIO_SID is not set");
     let token = dotenv::var("TWILIO_TOKEN").expect("$TWILIO_TOKEN is not set");
     let client = Client::new(sid.as_str(), token.as_str());
-    let msg = OutboundMessage::new(from, to, body);
+    let msg = OutboundMessage::new(from, to, body.as_str());
     
     println!("TO:{} FROM:{} BODY:{}", to, from, body);
     match client.send_message(msg).await {
@@ -45,11 +46,11 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Err
     let split: Vec<&str> = bod.split(|c| c == '&' || c == '=').collect();
     let num_to = split[25].to_string().replace("%2B", "+");
     let num_from = split[37].to_string().replace("%2B", "+");
-    let msg_body = split[21].to_string();
+    let msg_body = split[21].to_string().replace("+", "");
     println!("\n!!new message received!!");
     println!("to: {}", num_to);
     println!("from: {}", num_from);
-    println!("body: {}", msg_body);
+    println!("body: {}\n", msg_body);
 
     // post message to db... need help fixing this 
     let conn = Connection::open("db.db").expect("connection failed");
@@ -64,13 +65,13 @@ async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Err
 
 #[tokio::main]
 pub async fn main() {
-    let addr = "0.0.0.0:3000".parse().expect("Unable to parse address");
+    let addr = "127.0.0.1:3000".parse().expect("Unable to parse address");
 
     let server = Server::bind(&addr).serve(service::make_service_fn(|_conn| async {
         Ok::<_, hyper::Error>(service::service_fn(handle_request))
     }));
 
-    println!("Listening on http://{}.", server.local_addr());
+    println!("\t\t\tlistening on http://{}\n", server.local_addr());
 
     if let Err(e) = server.await {
         eprintln!("Error: {}", e);

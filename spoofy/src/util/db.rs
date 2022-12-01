@@ -38,7 +38,7 @@ pub async fn insert_message(conn: &Connection, args: Vec<String>) -> Result<()> 
     println!("inside msg insert");
     conn.execute(
         "insert into messages (number_to, number_from, msg_body) values (?1, ?2, ?3)",
-        &[args[1].as_str(), args[2].as_str(), args[3].as_str()],
+        &[args[1].as_str(), args[2].as_str(), &args[3..].join(" ")],
     ).expect("insert failed");
     Ok(())
 }
@@ -78,7 +78,7 @@ pub async fn get_messages(conn: &Connection) -> Result<()> {
     })?;
     
     for msg in msg_iter {
-     println!("found message {:?}", msg.unwrap())
+     println!("found message {:?}\n", msg.unwrap())
     }
     Ok(())
  }
