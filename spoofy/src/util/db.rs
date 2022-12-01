@@ -35,18 +35,19 @@ pub async fn check_db(conn: &Connection) -> Result<()> {
 }
 
 pub async fn insert_message(conn: &Connection, args: Vec<String>) -> Result<()> {
-    println!("inside msg insert");
     conn.execute(
         "insert into messages (number_to, number_from, msg_body) values (?1, ?2, ?3)",
         &[args[1].as_str(), args[2].as_str(), &args[3..].join(" ")],
     ).expect("insert failed");
+    //insert_number(conn, args[1].to_string()).await;
+    //insert_number(conn, args[2].to_string()).await;
     Ok(())
 }
 
-pub async fn insert_number(conn: &Connection, args: Vec<String>) -> Result<()> {
+pub async fn insert_number(conn: &Connection, num: String) -> Result<()> {
     conn.execute(
         "insert into numbers (number) values (?1)",
-        &[args[1].as_str()],
+        [num],
     ).expect("insert failed");
     Ok(())
 }

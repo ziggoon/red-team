@@ -1,9 +1,6 @@
-use hyper::service::{make_service_fn, service_fn};
-use futures::TryStreamExt; // 0.3.7
-use hyper::{server::Server, service, Body, Method, Request, Response}; // 0.13.9
+use hyper::{server::Server, service, Body, Request, Response}; // 0.13.9
 use hyper::body;
-use std::convert::Infallible;
-use twilio::{Client, Message, OutboundMessage};
+use twilio::{Client, OutboundMessage};
 use rusqlite::Connection;
 
 use dotenv;
@@ -14,14 +11,14 @@ pub async fn send(conn: &Connection, args: Vec<String>) {
     //println!("welcome to client::send()");
     let to = &args[1];
     let from = &args[2];
-    let mut body = args[3..].join(" ");
+    let body = args[3..].join(" ");
 
     let sid = dotenv::var("TWILIO_SID").expect("$TWILIO_SID is not set");
     let token = dotenv::var("TWILIO_TOKEN").expect("$TWILIO_TOKEN is not set");
     let client = Client::new(sid.as_str(), token.as_str());
     let msg = OutboundMessage::new(from, to, body.as_str());
     
-    println!("TO:{} FROM:{} BODY:{}", to, from, body);
+    //println!("TO:{} FROM:{} BODY:{}", to, from, body);
     match client.send_message(msg).await {
         Ok(m) => {
             println!("{:?}", m);
@@ -33,10 +30,6 @@ pub async fn send(conn: &Connection, args: Vec<String>) {
 
 // handles api request from twilio... TERRIBLE implementation but it works ig..
 async fn handle_request(req: Request<Body>) -> Result<Response<Body>, hyper::Error> {
-    let sid = dotenv::var("TWILIO_SID").expect("$TWILIO_SID is not set");
-    let token = dotenv::var("TWILIO_TOKEN").expect("$TWILIO_TOKEN is not set");
-    let client = twilio::Client::new(sid.as_str(), token.as_str());
-
     let cloned_uri = req.uri().clone();
     println!("\nreceived a POST @: {}", cloned_uri);
     
