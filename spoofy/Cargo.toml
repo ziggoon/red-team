@@ -1,0 +1,15 @@
+[package]
+name = "sms_spoofer"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+rustyline = "7.1.0"
+twilio = "1.0.0"
+tokio = { version = "0.2.22", features = ["full"] }
+dotenv = "0.15"
+rusqlite = { version = "0.28.0", features = ["bundled"] }
+hyper = "0.13.9"
+futures = "0.3.7"
