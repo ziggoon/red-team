@@ -1,4 +1,5 @@
-use std::{path::PathBuf, process::Command};
+use std::path::PathBuf;
+use std::process::Command;
 
 use clap::Parser;
 
@@ -40,7 +41,7 @@ pub struct Options {
 }
 
 pub fn build_ebpf(opts: Options) -> Result<(), anyhow::Error> {
-    let dir = PathBuf::from("xdp-perfbuf-ebpf");
+    let dir = PathBuf::from("xdp-log-ebpf");
     let target = format!("--target={}", opts.target);
     let mut args = vec![
         "build",
@@ -58,7 +59,7 @@ pub fn build_ebpf(opts: Options) -> Result<(), anyhow::Error> {
     // so the rust-toolchain.toml file in the -ebpf folder is honored.
 
     let status = Command::new("cargo")
-        .current_dir(dir)
+        .current_dir(&dir)
         .env_remove("RUSTUP_TOOLCHAIN")
         .args(&args)
         .status()

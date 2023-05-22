@@ -1,5 +1,5 @@
 [package]
-name = "xdp-perfbuf-common"
+name = "xdp-log-common"
 version = "0.1.0"
 edition = "2021"
 

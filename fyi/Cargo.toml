@@ -1,2 +1,2 @@
 [workspace]
-members = ["xdp-perfbuf", "xdp-perfbuf-common", "xtask"]
+members = ["xdp-log", "xdp-log-common", "xtask"]

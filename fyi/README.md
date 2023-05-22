@@ -1,4 +1,4 @@
-# xdp-perfbuf
+# xdp-log
 
 ## Prerequisites
 
@@ -24,5 +24,5 @@ cargo build
 ## Run
 
 ```bash
-RUST_LOG=info cargo xtask run
+cargo xtask run
 ```
