@@ -1,6 +1,12 @@
 #![no_std]
 
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct PacketBuffer {
+    pub size: usize,
+}
+
+#[repr(C)]
 #[derive(Clone, Copy)]
 pub struct PacketLog {
     pub ipv4_address: u32,
